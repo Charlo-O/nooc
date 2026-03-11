@@ -1,15 +1,20 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { TextUpload } from "@/components/text-upload";
 import { useSettings } from "@/hooks/use-settings";
+import { findBuiltinHistoryEntry, useHistory } from "@/hooks/use-history";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 const TEXT_STORAGE_KEY = "nooc-pending-text";
 
 export default function HomePage() {
   const router = useRouter();
   const { isConfigured, loaded } = useSettings();
+  const { entries, loaded: historyLoaded } = useHistory();
+  const builtinSample = findBuiltinHistoryEntry(entries);
 
   const handleSubmit = (text: string) => {
     if (!isConfigured) {
@@ -32,6 +37,27 @@ export default function HomePage() {
       </div>
 
       <TextUpload onSubmit={handleSubmit} />
+
+      {historyLoaded && builtinSample && (
+        <Card className="border-primary/20 bg-primary/5">
+          <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="space-y-1">
+              <h3 className="font-medium">内置示例：白夜</h3>
+              <p className="text-sm text-muted-foreground">
+                软件首次打开会自带一份《白夜》的分析历史，方便直接参考生成结果、文件结构和后续功能效果。
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" asChild>
+                <Link href="/history">历史记录</Link>
+              </Button>
+              <Button asChild>
+                <Link href={`/results?history=${builtinSample.id}`}>查看示例</Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card className="bg-muted/30">
         <CardContent className="p-4">

@@ -1,6 +1,7 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { FileTree } from "@/components/file-tree";
 import { FileViewer } from "@/components/file-viewer";
@@ -9,12 +10,30 @@ import { DownloadButton } from "@/components/download-button";
 import { Button } from "@/components/ui/button";
 import { List, FolderTree, ArrowLeft } from "lucide-react";
 import { HistoryCardSelect } from "@/components/history-card-select";
-import { HistoryEntry } from "@/hooks/use-history";
+import { HistoryEntry, useHistory } from "@/hooks/use-history";
 
 function ResultsContent() {
+  const searchParams = useSearchParams();
+  const { loaded, getEntry } = useHistory();
   const [entry, setEntry] = useState<HistoryEntry | null>(null);
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [view, setView] = useState<"tree" | "preview">("tree");
+  const initializedRef = useRef(false);
+  const historyId = searchParams.get("history");
+
+  useEffect(() => {
+    if (initializedRef.current || entry || !loaded) return;
+    initializedRef.current = true;
+
+    if (!historyId) return;
+
+    const initialEntry = getEntry(historyId);
+    if (!initialEntry) return;
+
+    setEntry(initialEntry);
+    const paths = Object.keys(initialEntry.files);
+    setSelectedFile(paths[0] ?? null);
+  }, [entry, getEntry, historyId, loaded]);
 
   // Card selection view
   if (!entry) {

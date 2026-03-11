@@ -73,7 +73,7 @@ pnpm install
 ### 启动开发服务器
 
 ```bash
-pnpm dev --port 4000
+pnpm dev
 ```
 
 访问 http://localhost:4000
