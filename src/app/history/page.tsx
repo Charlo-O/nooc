@@ -12,7 +12,7 @@ export default function HistoryPage() {
   if (!loaded) return null;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 px-6 py-6 mx-auto max-w-5xl w-full">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">历史记录</h1>
         {entries.length > 0 && (

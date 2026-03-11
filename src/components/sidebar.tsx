@@ -4,8 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { BookOpen, Settings, FolderTree, History, PanelLeftClose, PanelLeft, MessageCircle, PenLine, Network } from "lucide-react";
+import { BookOpen, Settings, FolderTree, History, PanelLeftClose, PanelLeft, MessageCircle, PenLine, Network, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useProcessStore } from "@/hooks/use-process-store";
 
 const COLLAPSED_KEY = "nooc-sidebar-collapsed";
 
@@ -22,6 +23,8 @@ const navItems = [
 export function Sidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const { isRunning, steps } = useProcessStore();
+  const doneCount = steps.filter((s) => s.status === "done").length;
 
   useEffect(() => {
     const stored = localStorage.getItem(COLLAPSED_KEY);
@@ -74,6 +77,22 @@ export function Sidebar() {
           );
         })}
       </nav>
+
+      {isRunning && (
+        <div className="border-t p-2">
+          <Link
+            href="/process"
+            className={cn(
+              "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-sidebar-accent text-blue-500",
+              collapsed && "justify-center px-0"
+            )}
+            title={collapsed ? `流水线处理中 ${doneCount}/4` : undefined}
+          >
+            <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
+            {!collapsed && <span>处理中 {doneCount}/4</span>}
+          </Link>
+        </div>
+      )}
     </aside>
   );
 }

@@ -19,9 +19,10 @@ function ResultsContent() {
   // Card selection view
   if (!entry) {
     return (
-      <div className="flex-1 flex flex-col h-full">
-        <div className="h-14 flex items-center px-4 border-b font-medium shrink-0">
-          分析结果 — 选择分析记录
+      <div className="px-6 py-6 mx-auto max-w-5xl w-full space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold">分析结果</h1>
+          <p className="text-muted-foreground">选择一条分析记录，查看生成的结构化文件</p>
         </div>
         <HistoryCardSelect selectedId={null} onSelect={(e) => {
           setEntry(e);

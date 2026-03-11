@@ -2,7 +2,7 @@ import { SettingsForm } from "@/components/settings-form";
 
 export default function SettingsPage() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 px-6 py-6 mx-auto max-w-5xl w-full">
       <div>
         <h1 className="text-2xl font-bold">API 设置</h1>
         <p className="text-muted-foreground">

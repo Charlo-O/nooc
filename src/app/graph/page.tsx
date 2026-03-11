@@ -6,7 +6,7 @@ import { HistoryCardSelect } from "@/components/history-card-select";
 import { HistoryEntry } from "@/hooks/use-history";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 // Simple deterministic color from string
@@ -41,9 +41,10 @@ function GraphPageInner() {
   // Card selection view
   if (!entry) {
     return (
-      <div className="flex-1 flex flex-col h-full">
-        <div className="h-14 flex items-center px-4 border-b font-medium shrink-0">
-          知识图谱 — 选择分析记录
+      <div className="px-6 py-6 mx-auto max-w-5xl w-full space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold">知识图谱</h1>
+          <p className="text-muted-foreground">选择一条分析记录，查看角色、关系、事件可视化</p>
         </div>
         <HistoryCardSelect selectedId={null} onSelect={setEntry} />
       </div>
@@ -54,7 +55,7 @@ function GraphPageInner() {
     <div className="flex-1 flex h-full overflow-hidden">
       {/* Main graph area */}
       <div className="flex-1 flex flex-col min-w-0">
-        <div className="h-14 flex items-center px-4 border-b gap-3 shrink-0">
+        <div className="h-14 flex items-center px-4 gap-3 shrink-0">
           <Button
             variant="ghost"
             size="icon"
@@ -252,17 +253,19 @@ function GraphPageInner() {
         </ScrollArea>
       </div>
 
-      {/* Right detail panel (shown when character selected) */}
+      {/* Right detail panel (shown when character selected) - soft separator */}
       {selectedChar && (
-        <div className="w-[280px] shrink-0 border-l flex flex-col">
-          <div className="h-14 flex items-center justify-between px-4 border-b">
+        <div className="w-[280px] shrink-0 flex flex-col bg-muted/30">
+          <div className="h-14 flex items-center justify-between px-4">
             <span className="font-medium">{selectedChar.name}</span>
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
               onClick={() => setSelectedCharId(null)}
-              className="text-xs text-muted-foreground hover:text-foreground"
             >
-              关闭
-            </button>
+              <X className="h-3.5 w-3.5" />
+            </Button>
           </div>
           <ScrollArea className="flex-1 p-4">
             <div className="space-y-4 text-sm">
@@ -308,7 +311,9 @@ function GraphPageInner() {
                 </section>
               )}
 
-              {selectedChar.arc_phases && (
+              {selectedChar.arc_phases &&
+                typeof selectedChar.arc_phases === "object" &&
+                Object.keys(selectedChar.arc_phases).length > 0 && (
                 <section>
                   <h3 className="font-medium mb-1">角色弧光</h3>
                   <div className="text-xs text-muted-foreground space-y-0.5">
@@ -318,7 +323,7 @@ function GraphPageInner() {
                           <span className="font-medium text-foreground">
                             {phase}
                           </span>
-                          ：{desc}
+                          ：{String(desc)}
                         </div>
                       )
                     )}

@@ -28,7 +28,7 @@ export default function RootLayout({
     <html lang="zh-CN">
       <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased min-h-screen bg-background flex`}>
         <Sidebar />
-        <main className="flex-1 min-w-0 px-6 py-6 mx-auto max-w-5xl w-full">
+        <main className="flex-1 min-w-0 overflow-hidden">
           {children}
         </main>
         <Toaster />

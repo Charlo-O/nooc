@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Pipeline } from "@/components/pipeline";
 import { Button } from "@/components/ui/button";
 import { useSettings } from "@/hooks/use-settings";
-import { useProcess } from "@/hooks/use-process";
+import { useProcessStore } from "@/hooks/use-process-store";
 import { AlertCircle, StopCircle, RotateCcw } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useHistory } from "@/hooks/use-history";
@@ -18,7 +18,7 @@ export default function ProcessPage() {
   const router = useRouter();
   const { settings, isConfigured, loaded } = useSettings();
   const { steps, isRunning, result, startProcess, cancelProcess, resetProcess } =
-    useProcess();
+    useProcessStore();
   const { addEntry } = useHistory();
   const startedRef = useRef(false);
   const savedRef = useRef(false);
@@ -27,6 +27,16 @@ export default function ProcessPage() {
   useEffect(() => {
     if (!loaded || startedRef.current) return;
     if (!isConfigured) return;
+    // If already running (came back to page), don't restart
+    if (isRunning) {
+      startedRef.current = true;
+      return;
+    }
+    // If already has result, don't restart
+    if (result) {
+      startedRef.current = true;
+      return;
+    }
 
     const text = sessionStorage.getItem(TEXT_STORAGE_KEY);
     if (!text) {
@@ -36,7 +46,7 @@ export default function ProcessPage() {
 
     startedRef.current = true;
     startProcess(text, settings);
-  }, [loaded, isConfigured, settings, startProcess]);
+  }, [loaded, isConfigured, settings, startProcess, isRunning, result]);
 
   // When done, save result and add to history
   useEffect(() => {
@@ -52,7 +62,7 @@ export default function ProcessPage() {
 
   if (!isConfigured) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 px-6 py-6 mx-auto max-w-5xl w-full">
         <h1 className="text-2xl font-bold">处理流水线</h1>
         <Card className="border-amber-500/50 bg-amber-500/5">
           <CardContent className="flex items-center gap-3 p-4">
@@ -67,9 +77,9 @@ export default function ProcessPage() {
     );
   }
 
-  if (noText) {
+  if (noText && !isRunning && !result) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 px-6 py-6 mx-auto max-w-5xl w-full">
         <h1 className="text-2xl font-bold">处理流水线</h1>
         <Card>
           <CardContent className="flex items-center gap-3 p-4">
@@ -85,7 +95,7 @@ export default function ProcessPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 px-6 py-6 mx-auto max-w-5xl w-full">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">处理流水线</h1>
         <div className="flex gap-2">
@@ -102,6 +112,7 @@ export default function ProcessPage() {
                 size="sm"
                 onClick={() => {
                   startedRef.current = false;
+                  savedRef.current = false;
                   resetProcess();
                   router.push("/");
                 }}

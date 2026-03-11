@@ -24,10 +24,26 @@ export function TextUpload({ onSubmit }: TextUploadProps) {
         return;
       }
       setFileName(file.name);
+
+      // Try UTF-8 first, then detect if garbled and retry with GBK
       const reader = new FileReader();
       reader.onload = (ev) => {
         const content = ev.target?.result as string;
-        setText(content);
+        // Check for common garbled patterns (replacement char or frequent high-byte combos)
+        const hasGarbled = content.includes("\uFFFD") ||
+          // Many consecutive non-CJK high chars suggest wrong encoding
+          /[\xC0-\xFF]{4,}/.test(content.slice(0, 2000));
+        if (hasGarbled) {
+          // Retry with GBK encoding
+          const gbkReader = new FileReader();
+          gbkReader.onload = (ev2) => {
+            const gbkContent = ev2.target?.result as string;
+            setText(gbkContent);
+          };
+          gbkReader.readAsText(file, "GBK");
+        } else {
+          setText(content);
+        }
       };
       reader.readAsText(file, "utf-8");
     },
