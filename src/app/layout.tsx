@@ -25,10 +25,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN">
-      <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased min-h-screen bg-background flex`}>
+    <html lang="zh-CN" className="h-full">
+      <body className={`${geistSans.variable} ${geistMono.variable} flex h-dvh overflow-hidden bg-background font-sans antialiased`}>
         <Sidebar />
-        <main className="flex-1 min-w-0 overflow-hidden">
+        <main className="soft-scrollbar flex min-h-0 min-w-0 flex-1 overflow-y-auto">
           {children}
         </main>
         <Toaster />

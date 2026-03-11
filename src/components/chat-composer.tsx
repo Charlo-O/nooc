@@ -33,10 +33,13 @@ export const ChatComposer = forwardRef<HTMLTextAreaElement, ChatComposerProps>(
     ref
   ) => {
     const canSend = value.trim().length > 0 && !disabled && !streaming;
+    const sendButtonClass = canSend
+      ? "h-10 w-10 rounded-full border-0 bg-black text-white shadow-none hover:bg-black/90"
+      : "h-10 w-10 rounded-full border-0 bg-[#b4b4b4] text-white shadow-none hover:bg-[#b4b4b4] disabled:opacity-100 disabled:bg-[#b4b4b4] disabled:text-white";
 
     return (
       <div className={cn("max-w-3xl mx-auto", className)}>
-        <div className="relative rounded-[28px] border border-black/10 bg-background shadow-sm transition-[border-color,box-shadow] focus-within:border-black/20 focus-within:shadow-[0_10px_30px_rgba(0,0,0,0.06)]">
+        <div className="flex items-center gap-2.5 rounded-[32px] border border-black/10 bg-background px-3.5 py-1.5 shadow-sm transition-[border-color,box-shadow] focus-within:border-black/20 focus-within:shadow-[0_8px_24px_rgba(0,0,0,0.05)]">
           <textarea
             ref={ref}
             value={value}
@@ -44,17 +47,16 @@ export const ChatComposer = forwardRef<HTMLTextAreaElement, ChatComposerProps>(
             onKeyDown={onKeyDown}
             placeholder={placeholder}
             rows={1}
-            className="min-h-[96px] max-h-[220px] w-full resize-none rounded-[28px] bg-transparent px-5 pb-14 pt-4 text-sm leading-6 placeholder:text-muted-foreground focus-visible:outline-none"
+            className="min-h-9 max-h-[220px] flex-1 resize-none bg-transparent px-2 py-[6px] text-sm leading-6 placeholder:text-muted-foreground focus-visible:outline-none"
           />
 
-          <div className="absolute bottom-3 right-3">
+          <div className="shrink-0">
             {streaming ? (
               <Button
                 type="button"
                 size="icon"
-                variant="outline"
                 onClick={onStop}
-                className="h-10 w-10 rounded-full border-black/10 bg-background shadow-none hover:bg-muted"
+                className="h-10 w-10 rounded-full border-0 bg-[#b4b4b4] text-white shadow-none hover:bg-[#a3a3a3]"
               >
                 <Square className="h-4 w-4" />
               </Button>
@@ -64,7 +66,7 @@ export const ChatComposer = forwardRef<HTMLTextAreaElement, ChatComposerProps>(
                 size="icon"
                 onClick={onSend}
                 disabled={!canSend}
-                className="h-10 w-10 rounded-full border border-transparent bg-black text-white shadow-none hover:bg-black/90 disabled:bg-muted disabled:text-muted-foreground"
+                className={sendButtonClass}
               >
                 <ArrowUp className="h-4 w-4" />
               </Button>

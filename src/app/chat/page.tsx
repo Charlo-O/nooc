@@ -118,8 +118,8 @@ function ChatPageInner() {
   }
 
   return (
-    <div className="flex h-full flex-1 overflow-hidden">
-      <div className="flex min-w-0 flex-1 flex-col">
+    <div className="flex h-full min-h-0 flex-1 overflow-hidden">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <div className="flex h-14 shrink-0 items-center justify-between px-6">
           <div className="flex min-w-0 items-center gap-2">
             <Button
@@ -150,7 +150,7 @@ function ChatPageInner() {
           )}
         </div>
 
-        <div className="flex-1 overflow-y-auto">
+        <div className="soft-scrollbar min-h-0 flex-1 overflow-y-auto">
           <div className="mx-auto max-w-3xl px-6">
             {!selectedCharId ? (
               <div className="py-20 text-center text-sm text-muted-foreground">
@@ -197,11 +197,11 @@ function ChatPageInner() {
         )}
       </div>
 
-      <div className="flex w-[260px] shrink-0 flex-col overflow-hidden bg-muted/20">
+      <div className="flex min-h-0 w-[260px] shrink-0 flex-col overflow-hidden bg-muted/20">
         <div className="flex h-14 shrink-0 items-center px-4">
           <span className="text-sm font-medium">选择角色</span>
         </div>
-        <div className="flex-1 space-y-2 overflow-y-auto px-3 pb-3">
+        <div className="soft-scrollbar flex-1 space-y-2 overflow-y-auto px-3 pb-3">
           {graph.characters.map((char) => {
             const isSelected = selectedCharId === char.id;
 

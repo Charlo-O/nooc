@@ -2,13 +2,14 @@
 
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { ArrowLeft, FolderTree, List } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { DownloadButton } from "@/components/download-button";
+import { FilePreviewList } from "@/components/file-preview-list";
 import { FileTree } from "@/components/file-tree";
 import { FileViewer } from "@/components/file-viewer";
-import { FilePreviewList } from "@/components/file-preview-list";
-import { DownloadButton } from "@/components/download-button";
-import { Button } from "@/components/ui/button";
-import { List, FolderTree, ArrowLeft } from "lucide-react";
 import { HistoryCardSelect } from "@/components/history-card-select";
 import { HistoryEntry, useHistory } from "@/hooks/use-history";
 
@@ -35,19 +36,23 @@ function ResultsContent() {
     setSelectedFile(paths[0] ?? null);
   }, [entry, getEntry, historyId, loaded]);
 
-  // Card selection view
   if (!entry) {
     return (
-      <div className="px-6 py-6 mx-auto max-w-5xl w-full space-y-6">
+      <div className="mx-auto w-full max-w-5xl space-y-6 px-6 py-6">
         <div>
           <h1 className="text-2xl font-bold">分析结果</h1>
-          <p className="text-muted-foreground">选择一条分析记录，查看生成的结构化文件</p>
+          <p className="text-muted-foreground">
+            选择一条分析记录，查看生成的结构化文件。
+          </p>
         </div>
-        <HistoryCardSelect selectedId={null} onSelect={(e) => {
-          setEntry(e);
-          const paths = Object.keys(e.files);
-          if (paths.length > 0) setSelectedFile(paths[0]);
-        }} />
+        <HistoryCardSelect
+          selectedId={null}
+          onSelect={(nextEntry) => {
+            setEntry(nextEntry);
+            const paths = Object.keys(nextEntry.files);
+            setSelectedFile(paths[0] ?? null);
+          }}
+        />
       </div>
     );
   }
@@ -56,26 +61,30 @@ function ResultsContent() {
   const fileCount = Object.keys(files).length;
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden p-6">
+      <div className="mx-auto flex w-full max-w-6xl shrink-0 items-center justify-between gap-4">
+        <div className="flex min-w-0 items-center gap-3">
           <Button
             variant="ghost"
             size="icon"
             className="h-8 w-8 shrink-0"
-            onClick={() => { setEntry(null); setSelectedFile(null); }}
+            onClick={() => {
+              setEntry(null);
+              setSelectedFile(null);
+            }}
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <div>
+          <div className="min-w-0">
             <h1 className="text-2xl font-bold">分析结果</h1>
-            <p className="text-sm text-muted-foreground">
+            <p className="truncate text-sm text-muted-foreground">
               {entry.title} · 共 {fileCount} 个文件
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="flex border rounded-md">
+
+        <div className="flex shrink-0 items-center gap-2">
+          <div className="flex rounded-md border">
             <Button
               variant={view === "tree" ? "secondary" : "ghost"}
               size="sm"
@@ -100,28 +109,33 @@ function ResultsContent() {
       </div>
 
       {view === "tree" ? (
-        <div className="grid grid-cols-[260px_1fr] gap-4 min-h-[600px]">
-          <Card className="overflow-hidden">
-            <CardContent className="p-2">
-              <FileTree
-                files={files}
-                selectedFile={selectedFile}
-                onSelect={setSelectedFile}
-              />
+        <div className="mx-auto mt-6 grid min-h-0 w-full max-w-6xl flex-1 grid-cols-[280px_minmax(0,1fr)] gap-4 overflow-hidden">
+          <Card className="min-h-0 overflow-hidden">
+            <CardContent className="h-full min-h-0 p-2">
+              <ScrollArea className="h-full">
+                <FileTree
+                  files={files}
+                  selectedFile={selectedFile}
+                  onSelect={setSelectedFile}
+                />
+              </ScrollArea>
             </CardContent>
           </Card>
-          <Card className="overflow-hidden">
+
+          <Card className="min-h-0 overflow-hidden">
             {selectedFile && files[selectedFile] ? (
               <FileViewer path={selectedFile} content={files[selectedFile]} />
             ) : (
-              <CardContent className="flex items-center justify-center h-full text-muted-foreground">
-                选择左侧文件查看内容
+              <CardContent className="flex h-full items-center justify-center text-muted-foreground">
+                从左侧选择一个文件查看内容。
               </CardContent>
             )}
           </Card>
         </div>
       ) : (
-        <FilePreviewList files={files} />
+        <div className="soft-scrollbar mx-auto mt-6 min-h-0 w-full max-w-6xl flex-1 overflow-y-auto pr-1">
+          <FilePreviewList files={files} />
+        </div>
       )}
     </div>
   );

@@ -45,6 +45,8 @@
 
 :root {
   --radius: 0.625rem;
+  --scrollbar-thumb: rgb(0 0 0 / 0.12);
+  --scrollbar-thumb-hover: rgb(0 0 0 / 0.18);
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -79,6 +81,8 @@
 }
 
 .dark {
+  --scrollbar-thumb: rgb(255 255 255 / 0.18);
+  --scrollbar-thumb-hover: rgb(255 255 255 / 0.26);
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.145 0 0);
@@ -119,4 +123,37 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+.soft-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+.soft-scrollbar::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.soft-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.soft-scrollbar::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 9999px;
+  background: transparent;
+  background-clip: padding-box;
+}
+
+.soft-scrollbar:hover {
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+
+.soft-scrollbar:hover::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+}
+
+.soft-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
 }

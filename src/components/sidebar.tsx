@@ -40,7 +40,7 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        "flex flex-col border-r bg-sidebar text-sidebar-foreground transition-all duration-200 shrink-0",
+        "flex h-full min-h-0 shrink-0 flex-col overflow-hidden border-r bg-sidebar text-sidebar-foreground transition-all duration-200",
         collapsed ? "w-[48px]" : "w-[240px]"
       )}
     >
@@ -55,7 +55,7 @@ export function Sidebar() {
         </Button>
       </div>
 
-      <nav className="flex-1 flex flex-col gap-1 p-2">
+      <nav className="soft-scrollbar flex flex-1 flex-col gap-1 overflow-y-auto p-2">
         {navItems.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || (href !== "/" && pathname.startsWith(href));
           return (

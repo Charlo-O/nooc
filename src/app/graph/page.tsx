@@ -52,10 +52,10 @@ function GraphPageInner() {
   }
 
   return (
-    <div className="flex-1 flex h-full overflow-hidden">
+    <div className="mx-auto flex h-full min-h-0 w-full max-w-6xl flex-1 overflow-hidden">
       {/* Main graph area */}
-      <div className="flex-1 flex flex-col min-w-0">
-        <div className="h-14 flex items-center px-4 gap-3 shrink-0">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        <div className="h-14 flex items-center gap-3 px-6 shrink-0">
           <Button
             variant="ghost"
             size="icon"
@@ -74,7 +74,7 @@ function GraphPageInner() {
           </span>
         </div>
 
-        <ScrollArea className="flex-1 p-6">
+        <ScrollArea className="min-h-0 flex-1 p-6">
           {/* Character cards grid */}
           {(graph?.characters.length ?? 0) > 0 && (
             <section className="mb-8">
@@ -255,7 +255,7 @@ function GraphPageInner() {
 
       {/* Right detail panel (shown when character selected) - soft separator */}
       {selectedChar && (
-        <div className="w-[280px] shrink-0 flex flex-col bg-muted/30">
+        <div className="flex min-h-0 w-[280px] shrink-0 flex-col bg-muted/30">
           <div className="h-14 flex items-center justify-between px-4">
             <span className="font-medium">{selectedChar.name}</span>
             <Button
@@ -267,7 +267,7 @@ function GraphPageInner() {
               <X className="h-3.5 w-3.5" />
             </Button>
           </div>
-          <ScrollArea className="flex-1 p-4">
+          <ScrollArea className="min-h-0 flex-1 p-4">
             <div className="space-y-4 text-sm">
               {selectedChar.core_must?.length ? (
                 <section>

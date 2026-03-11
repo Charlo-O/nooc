@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useCallback, useRef, useState } from "react";
+import { ArrowRight, FileText, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Upload, FileText, ArrowRight } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 
 interface TextUploadProps {
   onSubmit: (text: string) => void;
@@ -14,41 +14,49 @@ interface TextUploadProps {
 export function TextUpload({ onSubmit }: TextUploadProps) {
   const [text, setText] = useState("");
   const [fileName, setFileName] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileUpload = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (!file) return;
+
       if (!file.name.endsWith(".txt") && !file.name.endsWith(".md")) {
         alert("请上传 .txt 或 .md 文件");
         return;
       }
+
       setFileName(file.name);
 
-      // Try UTF-8 first, then detect if garbled and retry with GBK
+      // Prefer UTF-8, then retry with GBK if the preview looks garbled.
       const reader = new FileReader();
       reader.onload = (ev) => {
         const content = ev.target?.result as string;
-        // Check for common garbled patterns (replacement char or frequent high-byte combos)
-        const hasGarbled = content.includes("\uFFFD") ||
-          // Many consecutive non-CJK high chars suggest wrong encoding
-          /[\xC0-\xFF]{4,}/.test(content.slice(0, 2000));
+        const hasGarbled =
+          content.includes("\uFFFD") || /[\xC0-\xFF]{4,}/.test(content.slice(0, 2000));
+
         if (hasGarbled) {
-          // Retry with GBK encoding
           const gbkReader = new FileReader();
           gbkReader.onload = (ev2) => {
-            const gbkContent = ev2.target?.result as string;
-            setText(gbkContent);
+            setText((ev2.target?.result as string) || "");
           };
           gbkReader.readAsText(file, "GBK");
-        } else {
-          setText(content);
+          return;
         }
+
+        setText(content);
       };
+
       reader.readAsText(file, "utf-8");
     },
     []
   );
+
+  const openFilePicker = useCallback(() => {
+    if (!fileInputRef.current) return;
+    fileInputRef.current.value = "";
+    fileInputRef.current.click();
+  }, []);
 
   const charCount = text.length;
   const wordEstimate = text.replace(/\s+/g, "").length;
@@ -61,12 +69,14 @@ export function TextUpload({ onSubmit }: TextUploadProps) {
           上传小说文本
         </CardTitle>
       </CardHeader>
+
       <CardContent className="space-y-4">
         <Tabs defaultValue="paste">
           <TabsList>
             <TabsTrigger value="paste">粘贴文本</TabsTrigger>
             <TabsTrigger value="file">上传文件</TabsTrigger>
           </TabsList>
+
           <TabsContent value="paste" className="space-y-2">
             <Textarea
               placeholder="在此粘贴小说文本..."
@@ -78,34 +88,33 @@ export function TextUpload({ onSubmit }: TextUploadProps) {
               }}
             />
           </TabsContent>
+
           <TabsContent value="file" className="space-y-2">
             <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 text-center">
-              <Upload className="h-8 w-8 text-muted-foreground mb-2" />
-              <p className="text-sm text-muted-foreground mb-2">
-                支持 .txt 和 .md 文件
-              </p>
+              <Upload className="mb-2 h-8 w-8 text-muted-foreground" />
+              <p className="mb-2 text-sm text-muted-foreground">支持 .txt 和 .md 文件</p>
+
               <input
+                ref={fileInputRef}
                 type="file"
                 accept=".txt,.md"
                 onChange={handleFileUpload}
                 className="hidden"
-                id="file-upload"
               />
-              <Button variant="outline" asChild>
-                <label htmlFor="file-upload" className="cursor-pointer">
-                  选择文件
-                </label>
+
+              <Button type="button" variant="outline" onClick={openFilePicker}>
+                选择文件
               </Button>
+
               {fileName && (
-                <p className="mt-2 text-sm text-muted-foreground">
-                  已加载: {fileName}
-                </p>
+                <p className="mt-2 text-sm text-muted-foreground">已加载: {fileName}</p>
               )}
             </div>
+
             {text && (
               <div className="mt-4">
-                <p className="text-sm font-medium mb-1">文本预览：</p>
-                <div className="max-h-[200px] overflow-auto rounded border bg-muted/50 p-3 text-sm font-mono whitespace-pre-wrap">
+                <p className="mb-1 text-sm font-medium">文本预览:</p>
+                <div className="max-h-[200px] overflow-auto rounded border bg-muted/50 p-3 font-mono text-sm whitespace-pre-wrap">
                   {text.slice(0, 2000)}
                   {text.length > 2000 && "..."}
                 </div>
@@ -117,7 +126,8 @@ export function TextUpload({ onSubmit }: TextUploadProps) {
         {text && (
           <div className="flex items-center justify-between">
             <p className="text-sm text-muted-foreground">
-              字符数: {charCount.toLocaleString()} | 字数（估计）: {wordEstimate.toLocaleString()}
+              字符数: {charCount.toLocaleString()} | 字数（估计）:{" "}
+              {wordEstimate.toLocaleString()}
             </p>
             <Button onClick={() => onSubmit(text)} size="lg">
               开始分析

@@ -98,8 +98,8 @@ function WritePageInner() {
   }
 
   return (
-    <div className="flex h-full flex-1 overflow-hidden">
-      <div className="flex min-w-0 flex-1 flex-col">
+    <div className="flex h-full min-h-0 flex-1 overflow-hidden">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <div className="flex h-14 shrink-0 items-center justify-between px-6">
           <div className="flex min-w-0 items-center gap-2">
             <Button
@@ -143,7 +143,7 @@ function WritePageInner() {
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto">
+        <div className="soft-scrollbar min-h-0 flex-1 overflow-y-auto">
           <div className="mx-auto max-w-3xl px-6">
             {messages.length === 0 ? (
               <div className="py-20 text-center">
@@ -197,11 +197,11 @@ function WritePageInner() {
       </div>
 
       {showPanel && graph && (
-        <div className="flex w-[280px] shrink-0 flex-col overflow-hidden bg-muted/20">
+        <div className="flex min-h-0 w-[280px] shrink-0 flex-col overflow-hidden bg-muted/20">
           <div className="flex h-14 shrink-0 items-center px-4 text-sm font-medium">
             图谱摘要
           </div>
-          <div className="flex-1 space-y-2 overflow-y-auto px-3 pb-3">
+          <div className="soft-scrollbar flex-1 space-y-2 overflow-y-auto px-3 pb-3">
             {graph.characters.length > 0 && (
               <div className="rounded-lg border bg-background">
                 <button
