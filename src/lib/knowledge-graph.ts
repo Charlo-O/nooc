@@ -119,15 +119,56 @@ function tryParseYaml<T>(content: string | undefined): T[] {
   return [];
 }
 
+/** Ensure a value is an array of strings (handles YAML returning a bare string for single items). */
+function ensureStringArray(val: unknown): string[] | undefined {
+  if (Array.isArray(val)) return val.map(String);
+  if (typeof val === "string") return [val];
+  return undefined;
+}
+
+/** Normalize a parsed character node so all expected array fields are real arrays. */
+function normalizeCharacter(raw: CharacterNode): CharacterNode {
+  return {
+    ...raw,
+    id: raw.id ?? raw.name ?? "",
+    core_must: ensureStringArray(raw.core_must),
+    core_must_not: ensureStringArray(raw.core_must_not),
+    values_rank: ensureStringArray(raw.values_rank),
+    evidence: ensureStringArray(raw.evidence),
+  };
+}
+
+/** Normalize a parsed relation edge. */
+function normalizeRelation(raw: RelationEdge): RelationEdge {
+  return {
+    ...raw,
+    pair: ensureStringArray(raw.pair) ?? [],
+    history: ensureStringArray(raw.history),
+    hard_constraints: ensureStringArray(raw.hard_constraints),
+    evidence: ensureStringArray(raw.evidence),
+  };
+}
+
+/** Normalize a parsed event node. */
+function normalizeEvent(raw: EventNode): EventNode {
+  return {
+    ...raw,
+    participants: ensureStringArray(raw.participants),
+    causes: ensureStringArray(raw.causes),
+    effects: ensureStringArray(raw.effects),
+    evidence: ensureStringArray(raw.evidence),
+  };
+}
+
 export function parseGraphFromFiles(files: Record<string, string>): KnowledgeGraph {
   // Find YAML files by suffix matching (keys may have path prefixes)
   const find = (name: string) =>
     Object.entries(files).find(([k]) => k.endsWith(name))?.[1];
 
   return {
-    characters: tryParseYaml<CharacterNode>(find("characters.yaml")),
-    relations: tryParseYaml<RelationEdge>(find("relations.yaml")),
-    events: tryParseYaml<EventNode>(find("events.yaml")),
+    characters: tryParseYaml<CharacterNode>(find("characters.yaml")).map(normalizeCharacter),
+    relations: tryParseYaml<RelationEdge>(find("relations.yaml")).map(normalizeRelation),
+    events: tryParseYaml<EventNode>(find("events.yaml")).map(normalizeEvent),
     worldRules: find("world_rules.md") ?? "",
     timeline: find("timeline.md") ?? "",
   };
