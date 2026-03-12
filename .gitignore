@@ -10,6 +10,11 @@ out/
 .env
 .env.*
 
+# tauri
+src-tauri/target/
+src-tauri/gen/
+src-tauri/Cargo.lock
+
 # misc
 .DS_Store
 *.tsbuildinfo

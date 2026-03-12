@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
+import { runProcess, type ProcessSettings } from "@/lib/process-runner";
 
 export type StepStatus = "pending" | "running" | "done" | "error";
 
@@ -48,7 +49,7 @@ export function useProcess() {
   const startProcess = useCallback(
     async (
       text: string,
-      settings: { baseUrl: string; apiKey: string; modelName: string }
+      settings: ProcessSettings
     ) => {
       setIsRunning(true);
       setResult(null);
@@ -66,73 +67,37 @@ export function useProcess() {
       abortRef.current = abort;
 
       try {
-        const response = await fetch("/api/process", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text, settings }),
-          signal: abort.signal,
-        });
-
-        if (!response.ok) {
-          const errText = await response.text();
-          throw new Error(errText || `HTTP ${response.status}`);
-        }
-
-        const reader = response.body?.getReader();
-        if (!reader) throw new Error("No response stream");
-
-        const decoder = new TextDecoder();
-        let buffer = "";
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split("\n");
-          buffer = lines.pop() || "";
-
-          for (const line of lines) {
-            if (!line.startsWith("data: ")) continue;
-            const data = line.slice(6);
-            if (data === "[DONE]") continue;
-
-            try {
-              const event = JSON.parse(data);
-
-              if (event.type === "step_start") {
-                updateStep(event.step, {
-                  status: "running",
-                  startTime: Date.now(),
-                });
-              } else if (event.type === "step_chunk") {
-                setSteps((prev) =>
-                  prev.map((s) =>
-                    s.id === event.step
-                      ? { ...s, output: s.output + event.content }
-                      : s
-                  )
-                );
-              } else if (event.type === "step_done") {
-                updateStep(event.step, {
-                  status: "done",
-                  endTime: Date.now(),
-                });
-              } else if (event.type === "step_error") {
-                updateStep(event.step, {
-                  status: "error",
-                  output: event.error,
-                  endTime: Date.now(),
-                });
-              } else if (event.type === "result") {
-                setResult({ files: event.files });
-              }
-            } catch {}
+        for await (const event of runProcess(text, settings, abort.signal)) {
+          if (event.type === "step_start") {
+            updateStep(event.step!, {
+              status: "running",
+              startTime: Date.now(),
+            });
+          } else if (event.type === "step_chunk") {
+            setSteps((prev) =>
+              prev.map((s) =>
+                s.id === event.step
+                  ? { ...s, output: s.output + event.content }
+                  : s
+              )
+            );
+          } else if (event.type === "step_done") {
+            updateStep(event.step!, {
+              status: "done",
+              endTime: Date.now(),
+            });
+          } else if (event.type === "step_error") {
+            updateStep(event.step!, {
+              status: "error",
+              output: event.error!,
+              endTime: Date.now(),
+            });
+          } else if (event.type === "result") {
+            setResult({ files: event.files! });
           }
         }
       } catch (err: unknown) {
         if (err instanceof Error && err.name !== "AbortError") {
-          // Mark the first non-done step as error
           setSteps((prev) => {
             const first = prev.find(
               (s) => s.status === "running" || s.status === "pending"
