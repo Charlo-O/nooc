@@ -67,11 +67,131 @@ jobs:
           releaseBody: |
             ## Nooc ${{ github.ref_name }}
 
-            ### Downloads
+            ### Desktop
             - **Windows**: `.msi` / `.exe`
             - **macOS (Apple Silicon)**: `.dmg` (aarch64)
             - **macOS (Intel)**: `.dmg` (x86_64)
-            - **Linux**: `.deb` / `.AppImage`
+            - **Linux**: `.deb` / `.AppImage` / `.rpm`
+
+            ### Mobile
+            - **Android**: `.apk` (universal)
+            - **iOS**: `.ipa` (unsigned, requires re-signing)
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
+
+  android:
+    permissions:
+      contents: write
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android NDK
+        run: sdkmanager "ndk;27.0.12077973"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+          run_install: false
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - name: Install frontend dependencies
+        run: pnpm install
+
+      - name: Init Tauri Android
+        run: pnpm tauri android init
+
+      - name: Build Android APK
+        run: pnpm tauri android build --apk
+        env:
+          NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/27.0.12077973
+
+      - name: Upload APK to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          draft: true
+          files: src-tauri/gen/android/app/build/outputs/apk/universal/release/*.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  ios:
+    permissions:
+      contents: write
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+          run_install: false
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-ios,x86_64-apple-ios,aarch64-apple-ios-sim
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - name: Install frontend dependencies
+        run: pnpm install
+
+      - name: Init Tauri iOS
+        run: pnpm tauri ios init
+
+      - name: Build iOS (unsigned)
+        run: pnpm tauri ios build --export-method debug
+
+      - name: Zip iOS app
+        run: |
+          cd src-tauri/gen/apple/build/arm64
+          zip -r "$GITHUB_WORKSPACE/Nooc_ios.zip" *.app 2>/dev/null || \
+          cd "$GITHUB_WORKSPACE/src-tauri/gen/apple" && \
+          find . -name "*.app" -o -name "*.ipa" | head -5 && \
+          zip -r "$GITHUB_WORKSPACE/Nooc_ios.zip" $(find . -name "*.app" -type d | head -1) 2>/dev/null || true
+
+      - name: Upload iOS to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          draft: true
+          files: Nooc_ios.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
